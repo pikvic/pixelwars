@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            #image {
+                display: grid;
+                grid-template-columns: repeat(10, 40px);
+                grid-template-rows: repeat(10, 40px);
+            }
+            .pixel {
+                user-select:  none;
+                background-color: antiquewhite;
+            }
+            .pixel:hover {
+                border: 1px solid yellow;
+            }
+        </style>
+        <title>Chat</title>
+    </head>
+    <body>
+        <h1>PIXEL WARS</h1>
+        <h2>Your color: <span id="ws-id"></span></h2>
+        <div id="image">
+            {% for pixel in pixels %}
+            <div onclick="changeColor(event)" id="{{ pixel.id}}" class="pixel" style="background-color: {{ pixel.color }};">{{ pixel.id }}</div> 
+            {% endfor %}
+        </div>
+        <script>
+            function randomColor() {
+                return Math.floor(Math.random()*16777215).toString(16);
+            }
+            var client_id = randomColor();
+            document.querySelector("#ws-id").textContent = client_id;
+            var ws = new WebSocket(`ws://localhost:8000/ws/${client_id}`);
+            ws.onmessage = function(event) {
+                var data = event.data.split(' ');
+                var id = data[0];
+                var color = data[1];
+                var elem = document.getElementById(id);
+                elem.style.backgroundColor = '#' + color;
+            };
+            function sendMessage(id, color) {
+                ws.send(`${id} ${color}`)
+            }
+
+            function changeColor(event) {
+                sendMessage(event.path[0].id, client_id)
+            }
+        </script>
+    </body>
+</html>
